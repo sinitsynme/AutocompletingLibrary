@@ -4,7 +4,9 @@ import ru.sinitsynme.airportsearch.exception.SearchException;
 import ru.sinitsynme.airportsearch.parser.TableParser;
 import ru.sinitsynme.airportsearch.prefixTree.PrefixTree;
 import ru.sinitsynme.airportsearch.searchEngine.ColumnSearchEngine;
+import ru.sinitsynme.airportsearch.utils.MapUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,7 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
 
     private Map<Integer, String> searchData;
 
-    public TrieColumnSearchEngine(TableParser tableParser, int column) {
+    public TrieColumnSearchEngine(TableParser tableParser, int column) throws IOException {
         this.tableParser = tableParser;
 
         prepareEngineForSearchInColumn(column);
@@ -41,10 +43,15 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
 
         List<Integer> matchedIds = prefixTree.searchIdsStartingByString(query);
 
-        Map<Integer, String> resultMap = searchData.entrySet().stream().filter(x -> matchedIds.contains(x.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<Integer, String> resultMap = filterSearchData(matchedIds);
 
         return formatResult(resultMap);
+    }
+
+    private Map<Integer, String> filterSearchData(List<Integer> ids){
+        MapUtils<Integer, String> mapUtils = new MapUtils<>();
+
+        return mapUtils.filter(searchData, ids);
     }
 
     private List<String> formatResult(Map<Integer, String> resultMap)
@@ -53,7 +60,8 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
 
         for (Map.Entry<Integer, String> entry: resultMap.entrySet()) {
 
-            String singleResult = String.format("%s[%s]", entry.getValue(), tableParser.getRow(entry.getKey()) == null ? "" : tableParser.getRow(entry.getKey()));
+            String singleResult = String.format("%s[%s]", entry.getValue(), tableParser.getRow(entry.getKey()));
+
             resultList.add(singleResult);
 
         }
