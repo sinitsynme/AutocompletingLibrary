@@ -7,10 +7,10 @@ import ru.sinitsynme.airportsearch.searchEngine.ColumnSearchEngine;
 import ru.sinitsynme.airportsearch.utils.MapUtils;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class TrieColumnSearchEngine implements ColumnSearchEngine {
 
@@ -18,6 +18,8 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
     private final TableParser tableParser;
 
     private Map<Integer, String> searchData;
+
+    private final Clock clock = Clock.systemDefaultZone();
 
     public TrieColumnSearchEngine(TableParser tableParser, int column) throws IOException {
         this.tableParser = tableParser;
@@ -37,7 +39,7 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
     public List<String> search(String query) {
         query = query.trim();
 
-        if (query.trim().length() == 0){
+        if (query.trim().length() == 0) {
             throw new SearchException("Запрос должен содержать в себе непробельные символы!");
         }
 
@@ -45,22 +47,23 @@ public class TrieColumnSearchEngine implements ColumnSearchEngine {
 
         Map<Integer, String> resultMap = filterSearchData(matchedIds);
 
-        return formatResult(resultMap);
+        return formatResult(resultMap, matchedIds);
     }
 
-    private Map<Integer, String> filterSearchData(List<Integer> ids){
+    private Map<Integer, String> filterSearchData(List<Integer> ids) {
         MapUtils<Integer, String> mapUtils = new MapUtils<>();
 
         return mapUtils.filter(searchData, ids);
     }
 
-    private List<String> formatResult(Map<Integer, String> resultMap)
-    {
+    private List<String> formatResult(Map<Integer, String> resultMap, List<Integer> matchedIds) {
         List<String> resultList = new ArrayList<>();
 
-        for (Map.Entry<Integer, String> entry: resultMap.entrySet()) {
+        Map<Integer, String> rows = tableParser.getRowsAndIds(matchedIds);
 
-            String singleResult = String.format("%s[%s]", entry.getValue(), tableParser.getRow(entry.getKey()));
+        for (Integer id : matchedIds) {
+
+            String singleResult = String.format("%s[%s]", resultMap.get(id), rows.get(id));
 
             resultList.add(singleResult);
 

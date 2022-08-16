@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CSVParser implements TableParser {
@@ -27,7 +28,7 @@ public class CSVParser implements TableParser {
     }
 
     @Override
-    public Map<Integer, String> getColumnIdAndData(int column){
+    public Map<Integer, String> getColumnIdAndData(int column) {
         Map<Integer, String> map = new HashMap<>();
 
         try (FileReader fileReader = new FileReader(filePath)) {
@@ -64,6 +65,34 @@ public class CSVParser implements TableParser {
                 if (id == i++) break;
             }
             return row;
+        } catch (IOException e) {
+            throw new TableParseException("Указан неверный путь к файлу");
+        }
+    }
+
+    @Override
+    public Map<Integer, String> getRowsAndIds(List<Integer> idList) {
+        Map<Integer, String> result = new HashMap<>();
+
+        idList.sort(Integer::compareTo);
+
+        int listIndex = 0;
+
+        try (FileReader fileReader = new FileReader(filePath)) {
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            String row;
+            int i = 1;
+            while (listIndex < idList.size() && (row = bufferedReader.readLine()) != null) {
+
+                int rowId = idList.get(listIndex);
+
+                if (rowId == i++) {
+                    result.put(rowId, row);
+                    listIndex++;
+                }
+            }
+            return result;
         } catch (IOException e) {
             throw new TableParseException("Указан неверный путь к файлу");
         }
