@@ -1,5 +1,7 @@
 package ru.sinitsynme.airportsearch;
 
+import ru.sinitsynme.airportsearch.exception.ArgumentException;
+import ru.sinitsynme.airportsearch.exception.SearchException;
 import ru.sinitsynme.airportsearch.parser.impl.CSVParser;
 import ru.sinitsynme.airportsearch.searchEngine.ColumnSearchEngine;
 import ru.sinitsynme.airportsearch.searchEngine.impl.NumberColumnSearchEngine;
@@ -15,40 +17,26 @@ public class Main {
 
     private static final Clock clock = Clock.systemDefaultZone();
 
-    private static final String filePath = "classes/airports.csv";
-//    private static final String filePath = "src/main/resources/airports.csv";
+    private static String filePath;
 
-    private static final CSVParser csvParser = new CSVParser(filePath);
+    private static final String terminalFilePath = "classes/airports.csv";
+    private static final String consoleFilePath = "src/main/resources/airports.csv";
 
     private static ColumnSearchEngine searchEngine;
+
+    private static int searchColumnNumber;
 
 
     public static void main(String[] args) {
 
-//        int searchColumnNumber = 2;
-        int searchColumnNumber;
-
-        if (args.length == 0) {
-            System.out.println("Необходим один числовой аргумент!");
-            System.out.println("Перезапустите программу.");
-            return;
-        }
-
-        if (args.length > 1) {
-            System.out.println("Разрешён ввод только одного аргумента - колонки поиска!");
-            System.out.println("Перезапустите программу.");
-            return;
-        }
 
         try {
-            searchColumnNumber = Integer.parseInt(args[0]);
-        } catch (NumberFormatException nfe) {
-            System.out.println("Разрешён ввод только числового аргумента!");
-            System.out.println("Перезапустите программу.");
-            return;
-        }
-        try {
+
+//            runInConsole();
+            runInTerminal(args);
+
             instantiateSearchEngine(searchColumnNumber);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             System.out.println("Перезапустите программу.");
@@ -60,14 +48,16 @@ public class Main {
 
     private static void instantiateSearchEngine(int columnNumber) {
 
+        CSVParser csvParser = new CSVParser(filePath);
 
-        if (csvParser.isColumnAString(columnNumber)) {
+        if (csvParser.isColumnString(columnNumber)) {
             searchEngine = new StringColumnSearchEngine(csvParser, columnNumber);
         } else searchEngine = new NumberColumnSearchEngine(csvParser, columnNumber);
 
     }
 
     private static void useSearchEngine() {
+        System.out.printf("Поиск ведётся по колонке %d %n", searchColumnNumber);
 
         String quit = "";
 
@@ -90,12 +80,46 @@ public class Main {
                 System.out.printf("Время поиска: %d ms%n%n", after - before);
                 System.out.print("Введите !quit , чтобы завершить работу программы, или нажмите ENTER: ");
                 quit = scanner.nextLine();
+
             } catch (Exception e) {
+                System.out.println("В процессе поиска возникла ошибка!");
                 System.out.println(e.getMessage());
                 System.out.print("Введите !quit , чтобы завершить работу программы, или нажмите ENTER: ");
                 quit = scanner.nextLine();
             }
 
+        }
+    }
+
+    private static void runInConsole() {
+
+        filePath = consoleFilePath;
+        System.out.println("Введите номер колонки поиска: ");
+
+        try {
+            searchColumnNumber = Integer.parseInt(scanner.nextLine());
+
+        } catch (NumberFormatException nfe) {
+            throw new ArgumentException("Разрешён ввод только числового аргумента!");
+        }
+    }
+
+    private static void runInTerminal(String... args) {
+
+        filePath = terminalFilePath;
+
+        if (args.length == 0) {
+            throw new ArgumentException("Необходим один числовой аргумент!");
+        }
+
+        if (args.length > 1) {
+            throw new ArgumentException("Разрешён ввод только одного аргумента - колонки поиска!");
+        }
+
+        try {
+            searchColumnNumber = Integer.parseInt(args[0]);
+        } catch (NumberFormatException nfe) {
+            throw new ArgumentException("Разрешён ввод только числового аргумента!");
         }
     }
 }
