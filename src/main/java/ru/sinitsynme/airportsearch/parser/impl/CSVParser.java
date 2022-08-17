@@ -12,20 +12,47 @@ import java.util.Map;
 
 public class CSVParser implements TableParser {
 
-    private String filePath;
+    private final String filePath;
 
     public CSVParser(String filePath) {
         this.filePath = filePath;
     }
 
-
     public String getFilePath() {
         return filePath;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    private static void checkTableBorders(int column, String[] tableRow) {
+        if (column <= 0 || column > tableRow.length)
+            throw new TableParseException(
+                    String.format("В файле нет колонки с номером %d. Допустимые колонки: 1-%d %n" +
+                                    "Перезапустите программу с новым аргументом",
+                    column, tableRow.length));
     }
+
+    @Override
+    public boolean isColumnAString(int column) {
+        try (FileReader fileReader = new FileReader(filePath)) {
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            String row = bufferedReader.readLine();
+
+            if(row == null) return false;
+
+            String[] tableRow = row.split(",");
+            checkTableBorders(column, tableRow);
+
+            String checker = tableRow[column-1];
+
+            return checker.contains("\"") || checker.contains("\\");
+
+        }
+        catch (IOException e) {
+            throw new TableParseException("Указан неверный путь к файлу!");
+        }
+    }
+
+
 
     @Override
     public Map<Integer, String> getColumnIdAndData(int column) {
@@ -40,9 +67,7 @@ public class CSVParser implements TableParser {
             while ((row = bufferedReader.readLine()) != null) {
                 String[] tableRow = row.split(",");
 
-                if (column <= 0 || column > tableRow.length)
-                    throw new TableParseException(String.format("В файле нет колонки с номером %d. Допустимые колонки: 1-%d %nПерезапустите программу.",
-                            column, tableRow.length));
+                checkTableBorders(column, tableRow);
 
                 map.put(i++, tableRow[column - 1].replaceAll("\"", ""));
             }
