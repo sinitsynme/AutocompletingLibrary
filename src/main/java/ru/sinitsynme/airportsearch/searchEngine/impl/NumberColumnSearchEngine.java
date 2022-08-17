@@ -16,11 +16,11 @@ public class NumberColumnSearchEngine extends TrieColumnSearchEngine {
     }
 
     @Override
-    protected List<SearchResult> filterSearchData(List<Integer> ids) {
+    protected List<SearchResult> filterAndGetSearchData(List<Integer> ids) {
         List<NumberSearchResult> numberSearchResults = new ArrayList<>();
 
         for (Integer id : ids) {
-            numberSearchResults.add(new NumberSearchResult(id, Double.parseDouble(searchData.get(id))));
+            numberSearchResults.add(new NumberSearchResult(id, Double.parseDouble(searchColumnData.get(id))));
         }
 
         Collections.sort(numberSearchResults);

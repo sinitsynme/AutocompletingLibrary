@@ -68,19 +68,19 @@ public class PrefixTree {
         addEndSymbol(id, node);
     }
 
-    public List<Integer> searchIdsStartingByString(String query) {
+    public List<Integer> searchIdsByPrefix(String prefix) {
 
-        query = query.toLowerCase();
+        prefix = prefix.toLowerCase();
         int index = 0;
 
         PrefixTree node = this;
 
-        while (index < query.length()) {
+        while (index < prefix.length()) {
 
             boolean isFoundMatch = false;
 
             for (PrefixTree candidate : node.nextSymbols) {
-                if (query.charAt(index) == candidate.getSymbol()) {
+                if (prefix.charAt(index) == candidate.getSymbol()) {
 
                     isFoundMatch = true;
                     node = candidate;

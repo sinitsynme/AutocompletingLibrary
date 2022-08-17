@@ -16,11 +16,11 @@ public class StringColumnSearchEngine extends TrieColumnSearchEngine {
     }
 
     @Override
-    protected List<SearchResult> filterSearchData(List<Integer> ids) {
+    protected List<SearchResult> filterAndGetSearchData(List<Integer> ids) {
         List<StringSearchResult> stringSearchResults = new ArrayList<>();
 
         for (Integer id : ids) {
-            stringSearchResults.add(new StringSearchResult(id, searchData.get(id)));
+            stringSearchResults.add(new StringSearchResult(id, searchColumnData.get(id)));
         }
 
         Collections.sort(stringSearchResults);
