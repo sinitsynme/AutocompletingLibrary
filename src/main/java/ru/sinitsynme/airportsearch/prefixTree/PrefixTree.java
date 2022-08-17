@@ -10,6 +10,8 @@ public class PrefixTree {
 
     private int phraseId;
 
+    private static final char END_OF_PHRASE_SYMBOL = '$';
+
     public PrefixTree() {
     }
 
@@ -36,7 +38,7 @@ public class PrefixTree {
         int index = 0;
 
         PrefixTree node = this;
-        boolean isFoundMatch = false;
+        boolean isFoundMatch;
 
         while (index < word.length()) {
 
@@ -54,21 +56,16 @@ public class PrefixTree {
             }
 
             if (!isFoundMatch) {
-                PrefixTree newNode = new PrefixTree();
-                newNode.symbol = word.charAt(index);
-                node.nextSymbols.add(newNode);
-                node = newNode;
+                PrefixTree nextSymbolNode = new PrefixTree();
+                nextSymbolNode.symbol = word.charAt(index);
+                node.nextSymbols.add(nextSymbolNode);
+                node = nextSymbolNode;
             }
 
             index++;
         }
 
-        PrefixTree newNode = new PrefixTree();
-        newNode.symbol = '$';
-        node.nextSymbols.add(newNode);
-        node = newNode;
-
-        node.phraseId = id;
+        addEndSymbol(id, node);
     }
 
     public List<Integer> searchIdsStartingByString(String query) {
@@ -112,7 +109,7 @@ public class PrefixTree {
             PrefixTree currentNode = unsearchedNodes.poll();
 
             for (PrefixTree child : currentNode.nextSymbols) {
-                if (child.getSymbol() == '$') {
+                if (child.getSymbol() == END_OF_PHRASE_SYMBOL) {
                     matchedIds.add(child.phraseId);
                 }
             }
@@ -122,6 +119,15 @@ public class PrefixTree {
 
         return matchedIds;
 
+    }
+
+    private static void addEndSymbol(int id, PrefixTree node) {
+        PrefixTree endOfWordNode = new PrefixTree();
+        endOfWordNode.symbol = END_OF_PHRASE_SYMBOL;
+        node.nextSymbols.add(endOfWordNode);
+        node = endOfWordNode;
+
+        node.phraseId = id;
     }
 
 }
