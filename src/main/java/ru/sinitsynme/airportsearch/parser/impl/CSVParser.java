@@ -14,6 +14,11 @@ public class CSVParser implements TableParser {
 
     private final String filePath;
 
+    private static final String CSV_SEPARATOR = ",";
+    private static final String NULL_ATTRIBUTE = "\\N";
+    private static final String STRING_ATTRIBUTE = "\"";
+    private static final String EMPTY_STRING = "";
+
     public CSVParser(String filePath) {
         this.filePath = filePath;
     }
@@ -22,16 +27,17 @@ public class CSVParser implements TableParser {
         return filePath;
     }
 
-    private static void checkTableBorders(int column, String[] tableRow) {
+    private static void checkIfThereIsColumnInTable(int column, String[] tableRow) {
         if (column <= 0 || column > tableRow.length)
             throw new TableParseException(
-                    String.format("В файле нет колонки с номером %d. Допустимые колонки: 1-%d %n" +
-                                    "Перезапустите программу с новым аргументом",
+                    String.format("В файле нет колонки с номером %d. Допустимые колонки: 1-%d %n",
                     column, tableRow.length));
     }
 
+
+
     @Override
-    public boolean isColumnAString(int column) {
+    public boolean isColumnString(int column) {
         try (FileReader fileReader = new FileReader(filePath)) {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
@@ -39,12 +45,12 @@ public class CSVParser implements TableParser {
 
             if(row == null) return false;
 
-            String[] tableRow = row.split(",");
-            checkTableBorders(column, tableRow);
+            String[] tableRow = row.split(CSV_SEPARATOR);
+            checkIfThereIsColumnInTable(column, tableRow);
 
             String checker = tableRow[column-1];
 
-            return checker.contains("\"") || checker.contains("\\");
+            return checker.contains(STRING_ATTRIBUTE);
 
         }
         catch (IOException e) {
@@ -52,30 +58,47 @@ public class CSVParser implements TableParser {
         }
     }
 
-
-
     @Override
-    public Map<Integer, String> getColumnIdAndData(int column) {
-        Map<Integer, String> map = new HashMap<>();
+    public Map<Integer, String> getColumnDataAndId(int column) {
+        Map<Integer, String> possibleSearchResults = new HashMap<>();
 
         try (FileReader fileReader = new FileReader(filePath)) {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-            String row = "";
-            int i = 1;
+            // Checking a column number by the first row
+
+            String[] firstTableRow = bufferedReader.readLine().split(CSV_SEPARATOR);
+
+            checkIfThereIsColumnInTable(column, firstTableRow);
+
+            String firstRowValue = firstTableRow[column - 1].replaceAll(STRING_ATTRIBUTE, EMPTY_STRING);
+            possibleSearchResults.put(1, firstRowValue);
+
+
+            // Adding other rows in search results ignoring null values
+
+            int wordRowId = 2;
+            String row;
 
             while ((row = bufferedReader.readLine()) != null) {
-                String[] tableRow = row.split(",");
+                String[] tableRow = row.split(CSV_SEPARATOR);
 
-                checkTableBorders(column, tableRow);
+                String rowValue = tableRow[column - 1].replaceAll(STRING_ATTRIBUTE, EMPTY_STRING);
 
-                map.put(i++, tableRow[column - 1].replaceAll("\"", ""));
+                // Null values are not added in the list of possible search results - they cannot be found by a prefix
+                if(rowValue.equalsIgnoreCase(NULL_ATTRIBUTE)) {
+                    wordRowId++;
+                    continue;
+                }
+
+                // Add value to search results map
+                possibleSearchResults.put(wordRowId++, rowValue);
             }
         } catch (IOException e) {
             throw new TableParseException("Указан неверный путь к файлу!");
         }
 
-        return map;
+        return possibleSearchResults;
 
     }
 
@@ -84,7 +107,7 @@ public class CSVParser implements TableParser {
         try (FileReader fileReader = new FileReader(filePath)) {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-            String row = "";
+            String row;
             int i = 1;
             while ((row = bufferedReader.readLine()) != null) {
                 if (id == i++) break;
@@ -96,7 +119,7 @@ public class CSVParser implements TableParser {
     }
 
     @Override
-    public Map<Integer, String> getRowsAndIds(List<Integer> idList) {
+    public Map<Integer, String> getDataByRowIds(List<Integer> idList) {
         Map<Integer, String> result = new HashMap<>();
 
         idList.sort(Integer::compareTo);

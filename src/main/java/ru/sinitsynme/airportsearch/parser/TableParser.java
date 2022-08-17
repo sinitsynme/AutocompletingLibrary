@@ -5,11 +5,11 @@ import java.util.Map;
 
 public interface TableParser {
 
-    boolean isColumnAString(int column);
-    Map<Integer, String> getColumnIdAndData(int column);
+    boolean isColumnString(int column);
+    Map<Integer, String> getColumnDataAndId(int column);
 
     String getRow(int id);
 
-    Map<Integer, String> getRowsAndIds(List<Integer> idList);
+    Map<Integer, String> getDataByRowIds(List<Integer> idList);
 
 }
