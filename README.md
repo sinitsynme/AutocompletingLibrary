@@ -2,6 +2,9 @@
 
 A simple autocompleting engine based on a prefix tree.
 
+[RUS](README_ru.md) | [ENG](README.md)
+-------
+
 Example CSV file is built in the project (airports.csv) and you can search rows, having previously chosen by you column starting with a specific value.
 
 A column number is fixed during the start of the application (you can choose from 1 to 14).
