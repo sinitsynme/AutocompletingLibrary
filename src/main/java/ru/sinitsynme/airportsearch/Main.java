@@ -1,7 +1,8 @@
 package ru.sinitsynme.airportsearch;
 
 import ru.sinitsynme.airportsearch.exception.ArgumentException;
-import ru.sinitsynme.airportsearch.exception.SearchException;
+import ru.sinitsynme.airportsearch.exception.TableParseException;
+import ru.sinitsynme.airportsearch.parser.ColumnType;
 import ru.sinitsynme.airportsearch.parser.impl.CSVParser;
 import ru.sinitsynme.airportsearch.searchEngine.ColumnSearchEngine;
 import ru.sinitsynme.airportsearch.searchEngine.impl.NumberColumnSearchEngine;
@@ -50,9 +51,19 @@ public class Main {
 
         CSVParser csvParser = new CSVParser(filePath);
 
-        if (csvParser.isColumnString(columnNumber)) {
+        ColumnType columnType = csvParser.getColumnType(columnNumber);
+
+        if(columnType == ColumnType.STRING) {
             searchEngine = new StringColumnSearchEngine(csvParser, columnNumber);
-        } else searchEngine = new NumberColumnSearchEngine(csvParser, columnNumber);
+            return;
+        }
+        if (columnType == ColumnType.NUMBER){
+            searchEngine = new NumberColumnSearchEngine(csvParser, columnNumber);
+            return;
+        }
+        if (columnType == ColumnType.UNDEFINED){
+            throw new TableParseException("Неподдерживаемый тип колонки.");
+        }
 
     }
 

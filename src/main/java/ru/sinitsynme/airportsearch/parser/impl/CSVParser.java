@@ -1,7 +1,9 @@
 package ru.sinitsynme.airportsearch.parser.impl;
 
 import ru.sinitsynme.airportsearch.exception.TableParseException;
+import ru.sinitsynme.airportsearch.parser.ColumnType;
 import ru.sinitsynme.airportsearch.parser.TableParser;
+import ru.sinitsynme.airportsearch.utils.NumberUtils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -37,25 +39,29 @@ public class CSVParser implements TableParser {
 
 
     @Override
-    public boolean isColumnString(int column) {
+    public ColumnType getColumnType(int column) {
         try (FileReader fileReader = new FileReader(filePath)) {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             String row = bufferedReader.readLine();
 
-            if(row == null) return false;
+            if(row == null) throw new TableParseException("В файле нет строк!");
 
             String[] tableRow = row.split(CSV_SEPARATOR);
             checkIfThereIsColumnInTable(column, tableRow);
 
             String checker = tableRow[column-1];
 
-            return checker.contains(STRING_ATTRIBUTE);
+            if (checker.contains(STRING_ATTRIBUTE)) return ColumnType.STRING;
+            if (checker.equalsIgnoreCase(NULL_ATTRIBUTE)) return ColumnType.UNDEFINED;
+
+            return ColumnType.NUMBER;
 
         }
         catch (IOException e) {
             throw new TableParseException("Указан неверный путь к файлу!");
         }
+
     }
 
     @Override

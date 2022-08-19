@@ -4,7 +4,7 @@ import java.util.*;
 
 public class PrefixTree {
 
-    private final List<PrefixTree> nextSymbols = new LinkedList<>();
+    private final List<PrefixTree> nextSymbols = new ArrayList<>();
 
     private char symbol;
 

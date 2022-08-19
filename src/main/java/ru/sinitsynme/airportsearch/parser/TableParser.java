@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface TableParser {
 
-    boolean isColumnString(int column);
+    ColumnType getColumnType(int column);
     Map<Integer, String> getColumnDataAndId(int column);
 
     String getRow(int id);
